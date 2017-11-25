@@ -34,6 +34,8 @@ namespace licenseItExternal
         public DbSet<Group> Group { get; set; }
         
         public DbSet<UserGroup> UserGroup { get; set; }
+
+        public DbSet<Logs> Logs { get; set; }
     }
 }
 

@@ -19,6 +19,9 @@ namespace licenseItExternal.Controllers
         [Route("api/License/Get")]
         public ResponseModel<LicenseModel> GetById([FromBody] LicenseInput licenseInput)
         {
+            if (string.IsNullOrEmpty(licenseInput?.IdentityNumber) || string.IsNullOrEmpty(licenseInput.ApplicationHash) || string.IsNullOrEmpty(licenseInput.LicenseNumber))
+                throw new Exception("invalid data");
+
             var resp = new ResponseModel<LicenseModel>();
 
             try
@@ -74,6 +77,9 @@ namespace licenseItExternal.Controllers
 
             try
             {
+                if(string.IsNullOrEmpty(licenseInput?.IdentityNumber) || string.IsNullOrEmpty(licenseInput.ApplicationHash) || string.IsNullOrEmpty(licenseInput.LicenseNumber))
+                    throw new Exception("invalid data");
+
                 resp.Status = 200;
                 resp.Data = null;
                 var res = _licenseRepository.ActiveLicense(licenseInput.LicenseNumber, licenseInput.IdentityNumber, licenseInput.ApplicationHash);
