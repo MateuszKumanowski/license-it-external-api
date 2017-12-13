@@ -17,12 +17,12 @@ namespace licenseItExternal.Controllers
         // POST: api/License/Get
         [HttpPost]
         [Route("api/License/Get")]
-        public ResponseModel<LicenseModel> GetById([FromBody] LicenseInput licenseInput)
+        public LicenseModel GetById([FromBody] LicenseInput licenseInput)
         {
             if (string.IsNullOrEmpty(licenseInput?.IdentityNumber) || string.IsNullOrEmpty(licenseInput.ApplicationHash) || string.IsNullOrEmpty(licenseInput.LicenseNumber))
                 throw new Exception("invalid data");
 
-            var resp = new ResponseModel<LicenseModel>();
+            var resp = new LicenseModel();
 
             try
             {
@@ -30,8 +30,7 @@ namespace licenseItExternal.Controllers
 
                 if (res != null)
                 {
-                    resp.Status = 200;
-                    resp.Data = new LicenseModel
+                    resp = new LicenseModel
                     {
                         Expiration = res.Expiration,
                         IsActive = res.IsActive,
@@ -41,8 +40,7 @@ namespace licenseItExternal.Controllers
                 }
                 else
                 {
-                    resp.Status = 200;
-                    resp.Data = new LicenseModel
+                    resp = new LicenseModel
                     {
                         IsActive = false,
                         Description = "No active license"
@@ -52,9 +50,7 @@ namespace licenseItExternal.Controllers
             }
             catch (Exception ex)
             {
-                resp.Status = 500;
                 resp.Description = $"Error: {ex.Message}";
-                resp.Data = null;
             }
 
             //SetLogs
@@ -71,17 +67,16 @@ namespace licenseItExternal.Controllers
         // POST: api/License/Active
         [HttpPost]
         [Route("api/License/Active")]
-        public ResponseModel<LicenseModel> Active([FromBody] LicenseInput licenseInput)
+        public LicenseModel Active([FromBody] LicenseInput licenseInput)
         {
-            var resp = new ResponseModel<LicenseModel>();
+            var resp = new LicenseModel();
 
             try
             {
                 if(string.IsNullOrEmpty(licenseInput?.IdentityNumber) || string.IsNullOrEmpty(licenseInput.ApplicationHash) || string.IsNullOrEmpty(licenseInput.LicenseNumber))
                     throw new Exception("invalid data");
 
-                resp.Status = 200;
-                resp.Data = null;
+             
                 var res = _licenseRepository.ActiveLicense(licenseInput.LicenseNumber, licenseInput.IdentityNumber, licenseInput.ApplicationHash);
                 
                 switch (res)
@@ -108,7 +103,7 @@ namespace licenseItExternal.Controllers
                     case LicenseStatusEnum.Activated:
                         resp.Description = "License active";
                         var licenseClass = new LicenseClass();
-                        resp.Data = licenseClass.GetLicense(licenseInput.LicenseNumber, licenseInput.IdentityNumber, licenseInput.ApplicationHash);
+                        resp = licenseClass.GetLicense(licenseInput.LicenseNumber, licenseInput.IdentityNumber, licenseInput.ApplicationHash);
                         break;
                     case LicenseStatusEnum.Error:
                         resp.Description = "Error";
@@ -120,9 +115,7 @@ namespace licenseItExternal.Controllers
             }
             catch (Exception ex)
             {
-                resp.Status = 500;
                 resp.Description = $"Error: {ex.Message}";
-                resp.Data = null;
             }
 
             //SetLogs
@@ -130,7 +123,7 @@ namespace licenseItExternal.Controllers
             {
                 Description = resp.Description,
                 Date = DateTime.Now,
-                LicenseNumber = licenseInput.LicenseNumber
+                LicenseNumber = licenseInput?.LicenseNumber??""
             }).SetLogs();
 
             return resp;
